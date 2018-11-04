@@ -30,10 +30,11 @@ def start_db(*hostargs):
     db = client.moment_db
     users = db.users
     hubs = db.hubs
-    return client, db, users, hubs
+    sessions = db.sessions
+    return client, db, users, hubs, sessions
 
 app = Flask(__name__)
-client, db, users, hubs = start_db('localhost', 27017)
+client, db, users, hubs, sessions = start_db('localhost', 27017)
 
 #endregion
 
@@ -113,30 +114,43 @@ def add_item(hub_id, item):
     )
     return str(result)
 
+def remove_hub(id):
+    raise NotImplementedError()
+
+def remove_item(id):
+    raise NotImplementedError()
+
 #endregion
 
 #region Users
 # TODO: Handle login using Google
 # All of this code is likely somewhat irrelevant at this point--it'll all depend on Google auth stuff
 @app.route('/create_user', methods=['POST'])
-@queryargs('username')
-def create_user(username):
+@queryargs('google_data')
+def create_user(google_data):
     user_data = {
-        'username': username,
+        'info': google_data,
         'hubs_created': [],
         'hubs_visited': []
     }
     result = users.insert_one(user_data)
-    return result.inserted_id
-
-@app.route('/login', methods=['POST'])
-@queryargs('username', 'password')
-def login(username, password):
-    raise NotImplementedError()
+    return str(result.inserted_id)
 
 @app.route('/get_user', methods=['GET'])
 @queryargs('id')
 def get_user(id):
+    raise NotImplementedError()
+
+@app.route('/open_user', methods=['POST'])
+@queryargs('google_auth')
+def open_user(google_auth):
+    raise NotImplementedError()
+
+@app.route('/close-user', methods=['POST'])
+def close_user():
+    raise NotImplementedError()
+
+def validate_token(token):
     raise NotImplementedError()
 
 #endregion
