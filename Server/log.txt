@@ -1,0 +1,14 @@
+Launched server.
+Launched server.
+Launched server.
+For create_hub: argnames: ('scene_root', 'palette_types', 'lat', 'lon')	qAs: [None, '"p2"', '2', '2']
+Doc: {'_id': ObjectId('5bde29c2318e746ac8ff563b'), 'root_node': None, 'palette_types': '"p1"', 'location': ['1', '1'], 'items': []}
+For get_hub: argnames: ('id',)	qAs: ['5bde29c2318e746ac8ff563b']
+Launched server.
+Launched server.
+Launched server.
+For get_hub: argnames: ('id',)	qAs: ['5bde29c2318e746ac8ff563b']
+Launched server.
+For get_hub: argnames: ('id',)	qAs: ['5bde29c2318e746ac8ff563b']
+Launched server.
+For get_hub: argnames: ('id',)	qAs: ['5bde29c2318e746ac8ff563b']

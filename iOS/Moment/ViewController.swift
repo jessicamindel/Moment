@@ -14,6 +14,10 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 
     @IBOutlet var sceneView: ARSCNView!
     
+    @IBOutlet var createHubButton: UIButton!
+    @IBOutlet var createStickyButton: UIButton!
+    @IBOutlet var exitStickyButton: UIButton!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -28,6 +32,11 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         // Set the scene to the view
         sceneView.scene = scene
+        
+        // Handle debug buttons
+        createHubButton.isHidden = false
+        createStickyButton.isHidden = true
+        exitStickyButton.isHidden = true
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -47,17 +56,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         // Pause the view's session
         sceneView.session.pause()
     }
-
-    // MARK: - ARSCNViewDelegate
-    
-/*
-    // Override to create and configure nodes for anchors added to the view's session.
-    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
-        let node = SCNNode()
-     
-        return node
-    }
-*/
     
     func session(_ session: ARSession, didFailWithError error: Error) {
         // Present an error message to the user
@@ -71,6 +69,55 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     func sessionInterruptionEnded(_ session: ARSession) {
         // Reset tracking and/or remove existing anchors if consistent tracking is required
+        
+    }
+    
+    @IBAction func hubButtonTouch(_ sender: Any) {
+        // Handle button hiding
+        createHubButton.isHidden = true
+        createStickyButton.isHidden = false
+        exitStickyButton.isHidden = false
+        
+        // FIXME: This needs anchoring! It kind of just floats around weirdly!
+        let hubDot = SCNNode(geometry: SCNSphere(radius: 0.2)) // Temporarily creates dot at the core of the hub for debugging purposes
+        let camera = sceneView.session.currentFrame!.camera
+        let cameraNode = SCNNode()
+        cameraNode.transform = SCNMatrix4(camera.transform)
+        let position = SCNVector3(x: 0, y: 0, z: -1)
+        updatePositionAndOrientationOf(hubDot, withPosition: position, relativeTo: cameraNode)
+        sceneView.scene.rootNode.addChildNode(hubDot)
+    }
+    
+    @IBAction func stickyButtonTouch(_ sender: Any) {
+        
+    }
+    
+    @IBAction func stickyExitButtonTouch(_ sender: Any) {
+        // Handle button hiding
+        createHubButton.isHidden = false
+        createStickyButton.isHidden = true
+        exitStickyButton.isHidden = true
+        
+        //let sticky = Sticky()
+        //updatePositionAndOrientationOf(sticky, withPosition: <#T##SCNVector3#>, relativeTo: <#T##SCNNode#>)
+    }
+    
+    // Courtesy of https://stackoverflow.com/questions/42029347/position-a-scenekit-object-in-front-of-scncameras-current-orientation/42030679
+    func updatePositionAndOrientationOf(_ node: SCNNode, withPosition position: SCNVector3, relativeTo referenceNode: SCNNode) {
+        let referenceNodeTransform = matrix_float4x4(referenceNode.transform)
+        
+        // Setup a translation matrix with the desired position
+        var translationMatrix = matrix_identity_float4x4
+        translationMatrix.columns.3.x = position.x
+        translationMatrix.columns.3.y = position.y
+        translationMatrix.columns.3.z = position.z
+        
+        // Combine the configured translation matrix with the referenceNode's transform to get the desired position AND orientation
+        let updatedTransform = matrix_multiply(referenceNodeTransform, translationMatrix)
+        node.transform = SCNMatrix4(updatedTransform)
+    }
+    
+    func getHubsIn(radius: Int) {
         
     }
 }
