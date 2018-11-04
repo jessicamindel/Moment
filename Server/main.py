@@ -12,25 +12,25 @@ DEBUG = False
 
 #region Server Handling, Logging, and Initialization
 def make_logger(file):
-	def log(message):
-		if DEBUG:
-			with open(file, 'a') as f:
-				f.write(message)
-	def clear():
-		with open(file, 'w') as f:
-			f.write('')
-	log.clear = clear
-	return log
+    def log(message):
+        if DEBUG:
+            with open(file, 'a') as f:
+                f.write(message)
+    def clear():
+        with open(file, 'w') as f:
+            f.write('')
+    log.clear = clear
+    return log
 
 log = make_logger('log.txt')
 log('Launched server.\n')
 
 def start_db(*hostargs):
-	client = MongoClient(*hostargs)
-	db = client.moment_db
-	users = db.users
-	hubs = db.hubs
-	return client, db, users, hubs
+    client = MongoClient(*hostargs)
+    db = client.moment_db
+    users = db.users
+    hubs = db.hubs
+    return client, db, users, hubs
 
 app = Flask(__name__)
 client, db, users, hubs = start_db('localhost', 27017)
@@ -39,79 +39,79 @@ client, db, users, hubs = start_db('localhost', 27017)
 
 #region Helpers and Utilities
 def queryargs(*argnames):
-	def querydecorator(func):
-		def wrapper(*args):
-			#assert len(argnames) == len(args), 'The number of querystring parameter names must be same as the number of parameters to take in.'
-			qAs = [request.args.get(name) for name in argnames]
-			log(f'For {func.__name__}: argnames: {argnames}\tqAs: {qAs}\n')
-			return func(*qAs)
-		wrapper.__name__ = func.__name__
-		return wrapper
-	return querydecorator
+    def querydecorator(func):
+        def wrapper(*args):
+            #assert len(argnames) == len(args), 'The number of querystring parameter names must be same as the number of parameters to take in.'
+            qAs = [request.args.get(name) for name in argnames]
+            log(f'For {func.__name__}: argnames: {argnames}\tqAs: {qAs}\n')
+            return func(*qAs)
+        wrapper.__name__ = func.__name__
+        return wrapper
+    return querydecorator
 
 #endregion
 
 @app.route('/clear_log', methods=['POST'])
 def clear_log():
-	log.clear()
-	return ''
+    log.clear()
+    return ''
 
 #region Hubs
 @app.route('/all_hubs', methods=['GET'])
 def get_all_hubs():
-	result = hubs.find({})
-	return str([hub for hub in result])
+    result = hubs.find({})
+    return str([hub for hub in result])
 
 @app.route('/get_hubs', methods=['GET'])
 @queryargs('lat', 'lon', 'radius')
 def get_hubs(lat, lon, radius):
-	hub_cursor = hubs.find({})
-	nearby_hubs = []
-	for doc in hub_cursor:
-		try:
-			dist = geopy_d.distance((doc['location'][0], doc['location'][1]), (lat, lon)).ft
-			if dist <= radius:
-				nearby_hubs.append(doc)
-		except BaseException as e:
-			return f'Error: {e}'
-	return str(nearby_hubs)
+    hub_cursor = hubs.find({})
+    nearby_hubs = []
+    for doc in hub_cursor:
+        try:
+            dist = geopy_d.distance((doc['location'][0], doc['location'][1]), (lat, lon)).ft
+            if dist <= radius:
+                nearby_hubs.append(doc)
+        except BaseException as e:
+            return f'Error: {e}'
+    return str(nearby_hubs)
 
 @app.route('/get_hub', methods=['GET'])
 @queryargs('id')
 def get_hub(id):
-	result = hubs.find_one({'_id': ObjectId(id)})
-	return str(result)
+    result = hubs.find_one({'_id': ObjectId(id)})
+    return str(result)
 
 @app.route('/create_hub', methods=['POST'])
 @queryargs('root', 'palette_types', 'lat', 'lon')
 def create_hub(root, palette_types, lat, lon):
-	# Check for hubs that are too nearby
-	hub_cursor = hubs.find({})
-	for doc in hub_cursor:
-		try:
-			dist = geopy_d.distance((doc['location'][0], doc['location'][1]), (lat, lon)).ft
-			if (dist < HUB_RADIUS):
-				return f'Bad hub location; too close to hub {doc["_id"]}.'
-		except BaseException as e:
-			return f'Error: {e}'
-	# If not too nearby, then add new hub
-	hub_data = {
-		'root_node': root,
-		'palette_types': palette_types,
-		'location': [lat, lon],
-		'items': []
-	}
-	result = hubs.insert_one(hub_data)
-	return str(result.inserted_id)
+    # Check for hubs that are too nearby
+    hub_cursor = hubs.find({})
+    for doc in hub_cursor:
+        try:
+            dist = geopy_d.distance((doc['location'][0], doc['location'][1]), (lat, lon)).ft
+            if (dist < HUB_RADIUS):
+                return f'Bad hub location; too close to hub {doc["_id"]}.'
+        except BaseException as e:
+            return f'Error: {e}'
+    # If not too nearby, then add new hub
+    hub_data = {
+        'root_node': root,
+        'palette_types': palette_types,
+        'location': [lat, lon],
+        'items': []
+    }
+    result = hubs.insert_one(hub_data)
+    return str(result.inserted_id)
 
 @app.route('/add_item', methods=['POST'])
 @queryargs('hub_id', 'item')
 def add_item(hub_id, item):
-	result = hubs.update(
-		{ '_id': ObjectId(hub_id) },
-		{ '$push': { 'items': item } }
-	)
-	return str(result)
+    result = hubs.update(
+        { '_id': ObjectId(hub_id) },
+        { '$push': { 'items': item } }
+    )
+    return str(result)
 
 #endregion
 
@@ -121,23 +121,23 @@ def add_item(hub_id, item):
 @app.route('/create_user', methods=['POST'])
 @queryargs('username')
 def create_user(username):
-	user_data = {
-		'username': username,
-		'hubs_created': [],
-		'hubs_visited': []
-	}
-	result = users.insert_one(user_data)
-	return result.inserted_id
+    user_data = {
+        'username': username,
+        'hubs_created': [],
+        'hubs_visited': []
+    }
+    result = users.insert_one(user_data)
+    return result.inserted_id
 
 @app.route('/login', methods=['POST'])
 @queryargs('username', 'password')
 def login(username, password):
-	raise NotImplementedError()
+    raise NotImplementedError()
 
 @app.route('/get_user', methods=['GET'])
 @queryargs('id')
 def get_user(id):
-	raise NotImplementedError()
+    raise NotImplementedError()
 
 #endregion
 
